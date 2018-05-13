@@ -1,4 +1,4 @@
-package com.task.fedor.pomodorotechapp.MVP.Timer
+package com.task.fedor.pomodorotechapp.Timer.MVP
 
 enum class TimerState {
     RUNNING,
