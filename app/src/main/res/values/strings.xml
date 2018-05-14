@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">PomodoroTechApp</string>
+    <string name="start">START</string>
+    <string name="pause">PAUSE</string>
+    <string name="stop">STOP</string>
+    <string name="timer">Timer</string>
+    <string name="stop_question">Stop the timer?</string>
+    <string name="answer_yes">Yes</string>
+    <string name="answer_no">No</string>
+    <string name="session_finish">Session is over</string>
+    <string name="OK">Ok</string>
 </resources>

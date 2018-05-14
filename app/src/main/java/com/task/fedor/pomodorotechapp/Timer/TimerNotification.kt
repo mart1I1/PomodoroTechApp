@@ -20,7 +20,7 @@ object TimerNotification {
 
     private lateinit var timer: CustomTimer
 
-    fun create(durationInMillis : Long, context: Context) {
+    fun create(durationInSec : Int, context: Context) {
         val notificationIntent = Intent(context, TimerActivity::class.java)
         val contentIntent = PendingIntent.getActivity(
                 context,
@@ -40,15 +40,14 @@ object TimerNotification {
             builder.setChannelId(getChannelId("timer" + NOTIFICATION_ID.toString(), "Timer", context))
         }
 
-        timer = CustomTimer(durationInMillis, object : CustomTimer.TimerListener {
+        timer = CustomTimer(durationInSec, object : CustomTimer.TimerListener {
             override fun onFinish() {
                 builder.setContentText("00:00")
                 notificationManager.notify(NOTIFICATION_ID, builder.build())
             }
 
-            override fun onTick(millisRemaining: Long) {
-                var seconds = (millisRemaining / 1000).toInt()
-                builder.setContentText(String.format("%02d:%02d", seconds / 60, seconds % 60))
+            override fun onTick(secondsRemaining: Int) {
+                builder.setContentText(String.format("%02d:%02d", secondsRemaining / 60, secondsRemaining % 60))
                 notificationManager.notify(NOTIFICATION_ID, builder.build())
             }
         })

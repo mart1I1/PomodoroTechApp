@@ -4,15 +4,15 @@ import com.arellomobile.mvp.MvpView
 
 interface TimerView : MvpView {
 
-    fun setTimerMax(max : Long)
+    fun setTimerMax(max : Int)
 
     fun updateUIBtn(state: TimerState)
 
-    fun updateTimerProgress(millis: Long)
+    fun updateTimerProgress(seconds : Int)
 
     fun showStopAlert()
 
     fun hideAlertDialog()
 
-    fun showEndAlert()
+    fun showFinishAlert()
 }

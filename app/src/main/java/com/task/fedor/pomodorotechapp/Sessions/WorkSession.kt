@@ -9,7 +9,7 @@ class WorkSession(var timerPreference: TimerPreference) : Session {
     }
 
     override fun onFinish() {
-        if (timerPreference.breakSessionCounter == timerPreference.longBreakPeriod)
+        if (timerPreference.breakSessionCounter + 1 == timerPreference.longBreakPeriod)
             timerPreference.sessionType = SessionType.LONG_BREAK.name
         else
             timerPreference.sessionType = SessionType.BREAK.name

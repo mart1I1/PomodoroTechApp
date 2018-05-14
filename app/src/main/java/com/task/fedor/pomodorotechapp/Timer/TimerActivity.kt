@@ -1,7 +1,6 @@
 package com.task.fedor.pomodorotechapp.Timer
 
 import android.app.AlertDialog
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import com.arellomobile.mvp.MvpAppCompatActivity
@@ -22,7 +21,7 @@ class TimerActivity : MvpAppCompatActivity(), TimerView {
     @InjectPresenter(type = PresenterType.GLOBAL)
     lateinit var timerPresenter: TimerPresenter
     var stopAlertDialog : AlertDialog? = null
-    lateinit var endAlertDialog : AlertDialog
+    var finishAlertDialog : AlertDialog? = null
 
     @ProvidePresenter(type = PresenterType.GLOBAL)
     fun provideTimerPresenter() : TimerPresenter {
@@ -46,18 +45,13 @@ class TimerActivity : MvpAppCompatActivity(), TimerView {
         btn_pause.setOnClickListener{
             timerPresenter.pauseTimer()
         }
-
-        test.setOnClickListener {
-            startActivity(Intent(applicationContext, TimerActivity::class.java))
-        }
     }
 
-    override fun setTimerMax(max: Long) {
-        barTimer.max = (max / 1000).toInt()
+    override fun setTimerMax(max: Int) {
+        barTimer.max = max
     }
 
-    override fun updateTimerProgress(millis : Long) {
-        var seconds = (millis / 1000).toInt()
+    override fun updateTimerProgress(seconds : Int) {
         barTimer.progress = seconds
         textTimer.text = String.format("%02d:%02d", seconds / 60, seconds % 60)
     }
@@ -65,13 +59,13 @@ class TimerActivity : MvpAppCompatActivity(), TimerView {
     override fun showStopAlert() {
         if (!(stopAlertDialog != null && stopAlertDialog!!.isShowing)) {
             stopAlertDialog = AlertDialog.Builder(this)
-                    .setTitle("Таймер")
-                    .setMessage("Остановить таймер?")
-                    .setPositiveButton("Да", { _, _ -> run {
+                    .setTitle(getString(R.string.timer))
+                    .setMessage(getString(R.string.stop_question))
+                    .setPositiveButton(getString(R.string.answer_yes), { _, _ -> run {
                         timerPresenter.stopTimer()
                         timerPresenter.hideAlertDialog()
                     } })
-                    .setNegativeButton("Нет", { _, _ -> timerPresenter.hideAlertDialog()})
+                    .setNegativeButton(getString(R.string.answer_no), { _, _ -> timerPresenter.hideAlertDialog()})
                     .setOnCancelListener {
                         timerPresenter.hideAlertDialog()
                     }
@@ -79,11 +73,11 @@ class TimerActivity : MvpAppCompatActivity(), TimerView {
         }
     }
 
-    override fun showEndAlert() {
-        endAlertDialog = AlertDialog.Builder(this)
-                .setTitle("Таймер")
-                .setMessage("Сессия окончена")
-                .setPositiveButton("Ок", { _, _ -> run {
+    override fun showFinishAlert() {
+        finishAlertDialog = AlertDialog.Builder(this)
+                .setTitle(R.string.timer)
+                .setMessage(getString(R.string.session_finish))
+                .setPositiveButton(getString(R.string.OK), { _, _ -> run {
                     timerPresenter.updateView()
                     timerPresenter.hideAlertDialog()
                 }})
@@ -94,8 +88,8 @@ class TimerActivity : MvpAppCompatActivity(), TimerView {
     override fun hideAlertDialog() {
         if (stopAlertDialog != null)
             stopAlertDialog!!.dismiss()
-        if (this::endAlertDialog.isInitialized)
-            endAlertDialog.dismiss()
+        if (finishAlertDialog != null)
+            finishAlertDialog!!.dismiss()
 
     }
 
@@ -127,6 +121,12 @@ class TimerActivity : MvpAppCompatActivity(), TimerView {
     override fun onResume() {
         super.onResume()
         timerPresenter.deleteNotification(applicationContext)
+        timerPresenter.deleteInstance()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        timerPresenter.saveInstanceOnStop()
     }
 
 }

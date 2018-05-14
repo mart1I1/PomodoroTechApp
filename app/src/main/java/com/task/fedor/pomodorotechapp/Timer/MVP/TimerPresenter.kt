@@ -24,26 +24,35 @@ class TimerPresenter : MvpPresenter<TimerView>() {
     }
 
     private fun timerInit() {
-        var session = sessionFactory()
-        timer = CustomTimer((session.getDurationInSeconds() * 1000).toLong(), object : CustomTimer.TimerListener {
+        val session = sessionFactory()
+        val timerListener = object : CustomTimer.TimerListener {
             override fun onFinish() {
+                deleteInstance()
                 session.onFinish()
                 timerInit()
-                viewState.showEndAlert()
+                viewState.showFinishAlert()
             }
 
-            override fun onTick(millisRemaining: Long) {
-                viewState.updateTimerProgress(millisRemaining)
+            override fun onTick(secondsRemaining: Int) {
+                viewState.updateTimerProgress(secondsRemaining)
+                timerPreference.progressInSeconds = secondsRemaining
             }
-        })
+        }
+        timer = if (timerPreference.emergencyStop){
+            CustomTimer(
+                    session.getDurationInSeconds(),
+                    timerListener,
+                    timerPreference.progressInSeconds,
+                    TimerState.PAUSED)
+
+        } else {
+            CustomTimer(session.getDurationInSeconds(), timerListener)
+        }
+        deleteInstance()
     }
 
     fun startTimer(){
-        if (timer.state == TimerState.PAUSED)
-            timer.resume()
-        else
-            timer.start()
-
+        timer.start()
         updateView()
     }
 
@@ -76,9 +85,10 @@ class TimerPresenter : MvpPresenter<TimerView>() {
 
     fun updateView() {
         viewState.updateUIBtn(timer.state)
-        if (timer.state == TimerState.STOPPED) {
-            viewState.setTimerMax(timer.durationInMillis)
-            viewState.updateTimerProgress(timer.durationInMillis)
+        viewState.setTimerMax(timer.durationInSec)
+        when(timer.state) {
+            TimerState.STOPPED -> viewState.updateTimerProgress(timer.durationInSec)
+            TimerState.PAUSED -> viewState.updateTimerProgress(timer.secondsRemaining)
         }
     }
 
@@ -91,12 +101,21 @@ class TimerPresenter : MvpPresenter<TimerView>() {
     }
 
     fun createNotification(context: Context) {
-        Log.i(TAG, timer.state.name)
         if (timer.state == TimerState.RUNNING)
-            TimerNotification.create(timer.millisRemaining, context)
+            TimerNotification.create(timer.secondsRemaining, context)
     }
 
     fun deleteNotification(context: Context) {
         TimerNotification.delete(context)
+    }
+
+    fun saveInstanceOnStop() {
+        if (timer.state != TimerState.STOPPED) {
+            timerPreference.emergencyStop = true
+        }
+    }
+
+    fun deleteInstance(){
+        timerPreference.emergencyStop = false
     }
 }

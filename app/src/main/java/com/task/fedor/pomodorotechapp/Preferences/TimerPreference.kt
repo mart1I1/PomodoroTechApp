@@ -13,17 +13,25 @@ class TimerPreference(context : Context) {
     private val PREFERENCE_BREAK_DURATION = "BREAK_DURATION"
     private val PREFERENCE_LONG_BREAK_DURATION = "LONG_BREAK_DURATION"
     private val PREFERENCE_LONG_BREAK_PERIOD = "LONG_BREAK_PERIOD"
-    private val PREFERENCE_TIMER_STATE = "TIMER_STATE"
+    private val PREFERENCE_TIMER_EMERGENCY_STOP = "EMERGENCY_STOP"
 
     private val preference = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE)
 
-    /*var progressInSeconds: Int
+    var emergencyStop : Boolean
+        get() = preference.getBoolean(PREFERENCE_TIMER_EMERGENCY_STOP, false)
+        set(value) {
+            val editor = preference.edit()
+            editor.putBoolean(PREFERENCE_TIMER_EMERGENCY_STOP, value)
+            editor.apply()
+        }
+
+    var progressInSeconds: Int
         get() = preference.getInt(PREFERENCE_TIMER_PROGRESS, 0)
         set(value) {
             val editor = preference.edit()
             editor.putInt(PREFERENCE_TIMER_PROGRESS, value)
             editor.apply()
-        }*/
+        }
 
     var sessionType: String
         get() = preference.getString(PREFERENCE_SESSION_TYPE, SessionType.WORK.name)

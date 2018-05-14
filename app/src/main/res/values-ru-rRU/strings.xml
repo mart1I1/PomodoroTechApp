@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="start">Старт</string>
+    <string name="pause">Пауза</string>
+    <string name="stop">Стоп</string>
+    <string name="timer">Таймер</string>
+    <string name="answer_yes">Да</string>
+    <string name="answer_no">Нет</string>
+    <string name="session_finish">Сессия окончена</string>
+    <string name="stop_question">Остановить таймер?</string>
+    <string name="OK">Ок</string>
+</resources>

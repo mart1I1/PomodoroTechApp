@@ -9,7 +9,7 @@ class BreakSession(var timerPreference: TimerPreference) : Session {
     }
 
     override fun onFinish() {
-        timerPreference.breakSessionCounter
+        timerPreference.breakSessionCounter++
         timerPreference.sessionType = SessionType.WORK.name
     }
 }

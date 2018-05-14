@@ -3,43 +3,59 @@ package com.task.fedor.pomodorotechapp.Timer
 import android.os.CountDownTimer
 import com.task.fedor.pomodorotechapp.Timer.MVP.TimerState
 
-class CustomTimer(var durationInMillis: Long, var timerListener: TimerListener) {
+class CustomTimer(var durationInSec: Int, var timerListener: TimerListener) {
     private var countDownTimer : CountDownTimer
     private val countDownInterval : Long = 500
-    var millisRemaining: Long = 0
+    var secondsRemaining: Int = 0
         private set
     var state = TimerState.STOPPED
         private set
 
     interface TimerListener{
         fun onFinish()
-        fun onTick(millisRemaining : Long)
+        fun onTick(secondsRemaining : Int)
     }
 
     init {
-        countDownTimer = createCountDownTimer(durationInMillis, timerListener)
+        countDownTimer = createCountDownTimer(durationInSec, timerListener)
     }
 
-    private fun createCountDownTimer(durationInMillis: Long, timerListener: TimerListener) : CountDownTimer{
-        return object : CountDownTimer(durationInMillis, countDownInterval){
+    constructor(durationInSec: Int,
+                timerListener: TimerListener,
+                secondsRemaining: Int,
+                state: TimerState) : this(durationInSec, timerListener){
+        this.secondsRemaining = secondsRemaining
+        this.state = state
+    }
+
+    private fun createCountDownTimer(durationInSec: Int, timerListener: TimerListener) : CountDownTimer{
+        return object : CountDownTimer((durationInSec * 1000).toLong(), countDownInterval){
             override fun onFinish() {
-                timerListener.onFinish()
                 state = TimerState.STOPPED
+                timerListener.onFinish()
             }
 
             override fun onTick(millisRemaining: Long) {
-                this@CustomTimer.millisRemaining = millisRemaining
-                timerListener.onTick(millisRemaining)
+                secondsRemaining = (millisRemaining / 1000).toInt()
+                timerListener.onTick(secondsRemaining)
             }
         }
     }
 
     fun start(){
-        if (state == TimerState.STOPPED) {
-            countDownTimer = createCountDownTimer(durationInMillis, timerListener)
-            countDownTimer.start()
-            state = TimerState.RUNNING
+        when (state) {
+            TimerState.STOPPED -> {
+                countDownTimer = createCountDownTimer(durationInSec, timerListener)
+            }
+            TimerState.PAUSED -> {
+                countDownTimer = createCountDownTimer(secondsRemaining, timerListener)
+            }
+            else -> {
+                throw IllegalStateException("wrong state")
+            }
         }
+        countDownTimer.start()
+        state = TimerState.RUNNING
     }
 
     fun pause(){
@@ -49,17 +65,7 @@ class CustomTimer(var durationInMillis: Long, var timerListener: TimerListener) 
 
     fun stop(){
         countDownTimer.cancel()
-        millisRemaining = 0
+        secondsRemaining = 0
         state = TimerState.STOPPED
     }
-
-    fun resume(){
-        if (state == TimerState.PAUSED) {
-            countDownTimer = createCountDownTimer(millisRemaining, timerListener)
-            countDownTimer.start()
-            state = TimerState.RUNNING
-        }
-        else throw IllegalStateException("not a pause state")
-    }
-
 }
