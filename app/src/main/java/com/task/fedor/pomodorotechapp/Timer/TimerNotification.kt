@@ -10,6 +10,7 @@ import android.os.Build
 import android.annotation.TargetApi
 import android.graphics.Color
 import com.task.fedor.pomodorotechapp.R
+import com.task.fedor.pomodorotechapp.Timer.CustomTimer.BaseCustomTimer
 
 
 object TimerNotification {
@@ -18,7 +19,7 @@ object TimerNotification {
 
     private const val NOTIFICATION_ID = 77
 
-    private lateinit var timer: CustomTimer
+    private lateinit var timer: BaseCustomTimer
 
     fun create(durationInSec : Int, context: Context) {
         val notificationIntent = Intent(context, TimerActivity::class.java)
@@ -40,7 +41,7 @@ object TimerNotification {
             builder.setChannelId(getChannelId("timer" + NOTIFICATION_ID.toString(), "Timer", context))
         }
 
-        timer = CustomTimer(durationInSec, object : CustomTimer.TimerListener {
+        timer = BaseCustomTimer(durationInSec, object : BaseCustomTimer.TimerListener {
             override fun onFinish() {
                 builder.setContentText("00:00")
                 notificationManager.notify(NOTIFICATION_ID, builder.build())

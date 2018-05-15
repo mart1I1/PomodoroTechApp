@@ -4,9 +4,10 @@ import android.content.Context
 import android.util.Log
 import com.arellomobile.mvp.InjectViewState
 import com.arellomobile.mvp.MvpPresenter
-import com.task.fedor.pomodorotechapp.Timer.CustomTimer
 import com.task.fedor.pomodorotechapp.Preferences.TimerPreference
 import com.task.fedor.pomodorotechapp.Sessions.*
+import com.task.fedor.pomodorotechapp.Timer.CustomTimer.BaseCustomTimer
+import com.task.fedor.pomodorotechapp.Timer.CustomTimer.PreferenceCustomTimer
 import com.task.fedor.pomodorotechapp.Timer.TimerNotification
 
 @InjectViewState
@@ -14,7 +15,7 @@ class TimerPresenter : MvpPresenter<TimerView>() {
     val TAG = "TimerPresenter"
 
     lateinit var timerPreference: TimerPreference
-    lateinit var timer : CustomTimer
+    lateinit var timer : BaseCustomTimer
         private set
 
     override fun onFirstViewAttach() {
@@ -25,9 +26,8 @@ class TimerPresenter : MvpPresenter<TimerView>() {
 
     private fun timerInit() {
         val session = sessionFactory()
-        val timerListener = object : CustomTimer.TimerListener {
+        val timerListener = object : BaseCustomTimer.TimerListener {
             override fun onFinish() {
-                deleteInstance()
                 session.onFinish()
                 timerInit()
                 viewState.showFinishAlert()
@@ -38,17 +38,13 @@ class TimerPresenter : MvpPresenter<TimerView>() {
                 timerPreference.progressInSeconds = secondsRemaining
             }
         }
-        timer = if (timerPreference.emergencyStop){
-            CustomTimer(
-                    session.getDurationInSeconds(),
-                    timerListener,
-                    timerPreference.progressInSeconds,
-                    TimerState.PAUSED)
 
+        val currTimer = PreferenceCustomTimer(session.getDurationInSeconds(), timerListener, timerPreference)
+        timer = if (timerPreference.state != TimerState.STOPPED){
+            PreferenceCustomTimer(currTimer, timerPreference.progressInSeconds)
         } else {
-            CustomTimer(session.getDurationInSeconds(), timerListener)
+            currTimer
         }
-        deleteInstance()
     }
 
     fun startTimer(){
@@ -107,15 +103,5 @@ class TimerPresenter : MvpPresenter<TimerView>() {
 
     fun deleteNotification(context: Context) {
         TimerNotification.delete(context)
-    }
-
-    fun saveInstanceOnStop() {
-        if (timer.state != TimerState.STOPPED) {
-            timerPreference.emergencyStop = true
-        }
-    }
-
-    fun deleteInstance(){
-        timerPreference.emergencyStop = false
     }
 }
