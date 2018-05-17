@@ -120,6 +120,6 @@ class TimerActivity : MvpAppCompatActivity(), TimerView {
 
     override fun onResume() {
         super.onResume()
-        timerPresenter.deleteNotification(applicationContext)
+        timerPresenter.deleteNotification()
     }
 }

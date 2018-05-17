@@ -1,14 +1,15 @@
 package com.task.fedor.pomodorotechapp.Timer.MVP
 
 import android.content.Context
-import android.util.Log
+import android.content.Intent
 import com.arellomobile.mvp.InjectViewState
 import com.arellomobile.mvp.MvpPresenter
+import com.task.fedor.pomodorotechapp.Timer.Notification.NotificationKillerService
 import com.task.fedor.pomodorotechapp.Preferences.TimerPreference
 import com.task.fedor.pomodorotechapp.Sessions.*
 import com.task.fedor.pomodorotechapp.Timer.CustomTimer.BaseCustomTimer
 import com.task.fedor.pomodorotechapp.Timer.CustomTimer.PreferenceCustomTimer
-import com.task.fedor.pomodorotechapp.Timer.TimerNotification
+import com.task.fedor.pomodorotechapp.Timer.Notification.TimerNotification
 
 @InjectViewState
 class TimerPresenter : MvpPresenter<TimerView>() {
@@ -97,11 +98,13 @@ class TimerPresenter : MvpPresenter<TimerView>() {
     }
 
     fun createNotification(context: Context) {
-        if (timer.state == TimerState.RUNNING)
+        if (timer.state == TimerState.RUNNING) {
             TimerNotification.create(timer.secondsRemaining, context)
+            context.startService(Intent(context, NotificationKillerService::class.java))
+        }
     }
 
-    fun deleteNotification(context: Context) {
-        TimerNotification.delete(context)
+    fun deleteNotification() {
+        TimerNotification.delete()
     }
 }
