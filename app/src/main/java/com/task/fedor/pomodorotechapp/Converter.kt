@@ -1,4 +1,4 @@
-package com.task.fedor.pomodorotechapp.Timer
+package com.task.fedor.pomodorotechapp
 
 object Converter {
     fun timeInStringFrom(timeInSec : Int) : String {

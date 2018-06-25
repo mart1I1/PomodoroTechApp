@@ -1,18 +1,20 @@
 package com.task.fedor.pomodorotechapp.Timer.MVP
 
 import com.arellomobile.mvp.MvpView
+import com.task.fedor.pomodorotechapp.TimerState
 
 interface TimerView : MvpView {
 
     fun setTimerMax(max : Int)
+    fun setTimerProgress(seconds : Int)
 
-    fun updateUIBtn(state: TimerState)
+    fun updateBtn(state: TimerState)
 
-    fun updateTimerProgress(seconds : Int)
+    fun showStopAlertDialog()
+    fun showFinishAlertDialog()
+    fun hideAlertDialogs()
 
-    fun showStopAlert()
+    fun runFinishAlert()
 
-    fun hideAlertDialog()
-
-    fun showFinishAlert()
+    fun releaseAlertMedia()
 }

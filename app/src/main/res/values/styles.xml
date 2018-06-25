@@ -8,8 +8,15 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="TimerNotification" parent="TextAppearance.AppCompat.Notification.Time">
+    <style name="TimerNotification" parent="TextAppearance.Compat.Notification.Time">
         <item name="android:textSize">24sp</item>
+    </style>
+
+    <style name="MainTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorAccent">@color/accent</item>
+        <item name="android:textColorPrimary">@color/primary_text</item>
+        <item name="android:textColorSecondary">@color/secondary_text</item>
     </style>
 
 </resources>

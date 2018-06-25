@@ -1,12 +1,14 @@
 package com.task.fedor.pomodorotechapp.Timer.CustomTimer
 
 import android.os.CountDownTimer
-import com.task.fedor.pomodorotechapp.Timer.MVP.TimerState
+import com.task.fedor.pomodorotechapp.TimerState
 
-open class BaseCustomTimer(var durationInSec: Int,
-                           val timerListener: TimerListener,
+open class BaseCustomTimer(durationInSec: Int,
+                           private val timerListener: TimerListener,
                            startFrom: Int = 0) : CustomTimer {
-    private var countDownTimer : CountDownTimer
+    var durationInSec = durationInSec
+        private set
+    private lateinit var countDownTimer : CountDownTimer
     private val countDownInterval : Long = 500
     var secondsRemaining: Int = 0
         private set
@@ -14,11 +16,12 @@ open class BaseCustomTimer(var durationInSec: Int,
         private set
 
     init {
+        if (startFrom > durationInSec)
+            throw IllegalArgumentException("startFrom > durationInSec")
         if (startFrom != 0) {
             secondsRemaining = startFrom
             state = TimerState.PAUSED
         }
-        countDownTimer = countdownTimerFactory(state)
     }
 
     interface TimerListener {
@@ -30,7 +33,7 @@ open class BaseCustomTimer(var durationInSec: Int,
         return object : CountDownTimer((durationInSec * 1000).toLong(), countDownInterval){
             override fun onFinish() {
                 state = TimerState.STOPPED
-                timerListener.onFinish()
+                this@BaseCustomTimer.onFinish()
             }
 
             override fun onTick(millisRemaining: Long) {
@@ -44,25 +47,40 @@ open class BaseCustomTimer(var durationInSec: Int,
         timerListener.onTick(secondsRemaining)
     }
 
+    protected open fun onFinish() {
+        timerListener.onFinish()
+    }
+
     override fun start() {
-        countDownTimer = countdownTimerFactory(state)
-        countDownTimer.start()
+        if (state == TimerState.STOPPED || state == TimerState.PAUSED) {
+            countDownTimer = countdownTimerFactory(state)
+            countDownTimer.start()
 
-        state = TimerState.RUNNING
-
+            state = TimerState.RUNNING
+        }
     }
 
     override fun pause() {
-        countDownTimer.cancel()
+        if (state == TimerState.RUNNING) {
+            countDownTimer.cancel()
 
-        state = TimerState.PAUSED
+            state = TimerState.PAUSED
+        }
     }
 
     override fun stop() {
-        countDownTimer.cancel()
-        secondsRemaining = 0
+        if (state == TimerState.RUNNING || state == TimerState.PAUSED) {
+            if (this::countDownTimer.isInitialized)
+                countDownTimer.cancel()
+            secondsRemaining = 0
 
-        state = TimerState.STOPPED
+            state = TimerState.STOPPED
+        }
+    }
+
+    override fun skip() {
+        stop()
+        this.onFinish()
     }
 
     private fun countdownTimerFactory(state : TimerState) : CountDownTimer {
@@ -74,7 +92,7 @@ open class BaseCustomTimer(var durationInSec: Int,
                 createCountDownTimer(secondsRemaining, timerListener)
             }
             else -> {
-                throw IllegalStateException("wrong state")
+                throw IllegalStateException("wrong state for timer factory")
             }
         }
     }

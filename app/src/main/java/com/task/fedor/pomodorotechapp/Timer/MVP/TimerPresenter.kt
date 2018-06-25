@@ -1,110 +1,97 @@
 package com.task.fedor.pomodorotechapp.Timer.MVP
 
-import android.content.Context
-import android.content.Intent
 import com.arellomobile.mvp.InjectViewState
 import com.arellomobile.mvp.MvpPresenter
-import com.task.fedor.pomodorotechapp.Timer.Notification.NotificationKillerService
 import com.task.fedor.pomodorotechapp.Preferences.TimerPreference
+import com.task.fedor.pomodorotechapp.SessionType
 import com.task.fedor.pomodorotechapp.Sessions.*
 import com.task.fedor.pomodorotechapp.Timer.CustomTimer.BaseCustomTimer
 import com.task.fedor.pomodorotechapp.Timer.CustomTimer.PreferenceCustomTimer
-import com.task.fedor.pomodorotechapp.Timer.Notification.TimerNotification
+import com.task.fedor.pomodorotechapp.TimerState
 
 @InjectViewState
-class TimerPresenter : MvpPresenter<TimerView>() {
+class TimerPresenter : MvpPresenter<TimerView>(), ITimerPresenter {
     val TAG = "TimerPresenter"
 
-    lateinit var timerPreference: TimerPreference
     lateinit var timer : BaseCustomTimer
         private set
 
-    override fun onFirstViewAttach() {
-        super.onFirstViewAttach()
-        timerInit()
-        updateView()
-    }
-
-    private fun timerInit() {
-        val session = sessionFactory()
+    override fun initTimer(timerPreference: TimerPreference) {
+        val session = sessionFactory(timerPreference)
         val timerListener = object : BaseCustomTimer.TimerListener {
             override fun onFinish() {
                 session.onFinish()
-                timerInit()
-                viewState.showFinishAlert()
+                initTimer(timerPreference)
+                viewState.runFinishAlert()
             }
 
             override fun onTick(secondsRemaining: Int) {
-                viewState.updateTimerProgress(secondsRemaining)
-                timerPreference.progressInSeconds = secondsRemaining
+                viewState.setTimerProgress(secondsRemaining)
             }
         }
+        timer = PreferenceCustomTimer(
+                session.getDurationInSeconds(),
+                timerListener,
+                timerPreference)
 
-        val currTimer = PreferenceCustomTimer(session.getDurationInSeconds(), timerListener, timerPreference)
-        timer = if (timerPreference.state != TimerState.STOPPED){
-            PreferenceCustomTimer(currTimer, timerPreference.progressInSeconds)
-        } else {
-            currTimer
-        }
+        updateView()
     }
 
-    fun startTimer(){
+    override fun startTimer(){
         timer.start()
         updateView()
     }
 
-    fun stopTimer(){
+    override fun stopTimer(){
         timer.stop()
         updateView()
     }
 
-    fun pauseTimer(){
+    override fun pauseTimer(){
         timer.pause()
         updateView()
     }
 
-    private fun sessionFactory(): Session {
+    override fun skipTimer() {
+        timer.skip()
+        updateView()
+    }
+
+    private fun sessionFactory(timerPreference: TimerPreference): Session {
         return when (timerPreference.sessionType){
-            SessionType.WORK.name -> {
+            SessionType.WORK -> {
                 WorkSession(timerPreference)
             }
-            SessionType.BREAK.name -> {
+            SessionType.BREAK -> {
                 BreakSession(timerPreference)
             }
-            SessionType.LONG_BREAK.name -> {
+            SessionType.LONG_BREAK -> {
                 LongBreakSession(timerPreference)
             }
-            else -> {
-                throw IllegalArgumentException("session not found")
-            }
         }
     }
 
-    fun updateView() {
-        viewState.updateUIBtn(timer.state)
+    override fun updateView() {
+        viewState.updateBtn(timer.state)
         viewState.setTimerMax(timer.durationInSec)
         when(timer.state) {
-            TimerState.STOPPED -> viewState.updateTimerProgress(timer.durationInSec)
-            TimerState.PAUSED -> viewState.updateTimerProgress(timer.secondsRemaining)
+            TimerState.STOPPED -> viewState.setTimerProgress(timer.durationInSec)
+            TimerState.PAUSED -> viewState.setTimerProgress(timer.secondsRemaining)
         }
     }
 
-    fun stopAlert(){
-        viewState.showStopAlert()
+    override fun showStopAlertDialog(){
+        viewState.updateBtn(TimerState.OFF)
+        viewState.showStopAlertDialog()
     }
 
-    fun hideAlertDialog(){
-        viewState.hideAlertDialog()
+    override fun hideAlertDialogs(){
+        viewState.hideAlertDialogs()
     }
 
-    fun createNotification(context: Context) {
-        if (timer.state == TimerState.RUNNING) {
-            TimerNotification.create(timer.secondsRemaining, context)
-            context.startService(Intent(context, NotificationKillerService::class.java))
-        }
+    override fun releaseAlertMedia() {
+        viewState.releaseAlertMedia()
     }
 
-    fun deleteNotification() {
-        TimerNotification.delete()
-    }
+
 }

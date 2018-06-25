@@ -8,19 +8,19 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.support.v4.app.NotificationCompat
+import android.util.Log
 import android.widget.RemoteViews
 import com.task.fedor.pomodorotechapp.R
-import com.task.fedor.pomodorotechapp.Sessions.SessionType
-import com.task.fedor.pomodorotechapp.Timer.Converter
+import com.task.fedor.pomodorotechapp.Converter
 import com.task.fedor.pomodorotechapp.Timer.CustomTimer.BaseCustomTimer
-import com.task.fedor.pomodorotechapp.Timer.MVP.TimerState
 import com.task.fedor.pomodorotechapp.Timer.TimerActivity
+import com.task.fedor.pomodorotechapp.Timer.AlertMedia.TimerAlertMedia
 
 
 object TimerNotification {
 
     private const val TAG = "Notification"
-    const val NOTIFICATION_ID = 77
+    private const val NOTIFICATION_ID = 77
 
     private lateinit var timer: BaseCustomTimer
     private lateinit var notificationManager: NotificationManager
@@ -32,6 +32,7 @@ object TimerNotification {
                 10,
                 notificationIntent,
                 PendingIntent.FLAG_CANCEL_CURRENT)
+
         notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val remoteViews = getRemoteView(context)
@@ -40,6 +41,7 @@ object TimerNotification {
                 .setContent(remoteViews)
                 .setSmallIcon(R.drawable.ic_launcher_background)
                 .setOngoing(true)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             builder.setChannelId(getChannelId(NOTIFICATION_ID.toString(), context.resources.getString(R.string.timer)))
         }
@@ -47,6 +49,7 @@ object TimerNotification {
         timer = BaseCustomTimer(durationInSec, object : BaseCustomTimer.TimerListener {
             override fun onFinish() {
                 updateRemoteView(remoteViews, 0, builder)
+                TimerAlertMedia.play(context)
             }
             override fun onTick(secondsRemaining: Int) {
                 updateRemoteView(remoteViews, secondsRemaining, builder)

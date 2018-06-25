@@ -1,24 +1,12 @@
 package com.task.fedor.pomodorotechapp.Timer.CustomTimer
 
 import com.task.fedor.pomodorotechapp.Preferences.TimerPreference
-import com.task.fedor.pomodorotechapp.Timer.MVP.TimerState
+import com.task.fedor.pomodorotechapp.TimerState
 
 class PreferenceCustomTimer(durationInSec: Int,
                             timerListener: TimerListener,
-                            private val timerPreference : TimerPreference,
-                            startFrom : Int = 0) : BaseCustomTimer(durationInSec, timerListener, startFrom) {
-
-    constructor(baseCustomTimer: BaseCustomTimer,
-                timerPreference: TimerPreference,
-                startFrom: Int = 0)
-            : this(baseCustomTimer.durationInSec, baseCustomTimer.timerListener, timerPreference, startFrom)
-
-    constructor(preferenceCustomTimer: PreferenceCustomTimer,
-                startFrom: Int = 0)
-            : this(preferenceCustomTimer.durationInSec,
-            preferenceCustomTimer.timerListener,
-            preferenceCustomTimer.timerPreference,
-            startFrom)
+                            var timerPreference: TimerPreference)
+    : BaseCustomTimer(durationInSec, timerListener, timerPreference.secondsRemaining) {
 
     override fun start() {
         super.start()
@@ -32,12 +20,18 @@ class PreferenceCustomTimer(durationInSec: Int,
 
     override fun stop() {
         super.stop()
+        timerPreference.secondsRemaining = this.secondsRemaining
         saveState(this.state)
     }
 
     override fun onTick(secondsRemaining: Int) {
         super.onTick(secondsRemaining)
-        timerPreference.progressInSeconds = secondsRemaining
+        timerPreference.secondsRemaining = secondsRemaining
+    }
+
+    override fun onFinish() {
+        saveState(TimerState.STOPPED)
+        super.onFinish()
     }
 
     private fun saveState(state : TimerState) {

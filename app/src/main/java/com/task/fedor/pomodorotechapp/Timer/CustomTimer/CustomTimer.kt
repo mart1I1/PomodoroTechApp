@@ -4,4 +4,5 @@ interface CustomTimer {
     fun start()
     fun pause()
     fun stop()
+    fun skip()
 }

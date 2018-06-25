@@ -1,4 +1,4 @@
-package com.task.fedor.pomodorotechapp.Sessions
+package com.task.fedor.pomodorotechapp
 
 enum class SessionType {
     WORK,
