@@ -1,6 +1,7 @@
 package com.task.fedor.pomodorotechapp.Timer.MVP
 
 import com.arellomobile.mvp.MvpView
+import com.task.fedor.pomodorotechapp.SessionType
 import com.task.fedor.pomodorotechapp.TimerState
 
 interface TimerView : MvpView {
@@ -17,4 +18,7 @@ interface TimerView : MvpView {
     fun runFinishAlert()
 
     fun releaseAlertMedia()
+
+    fun initSegmentedProgressBarSession()
+    fun setSegmentedProgress(progress : Int)
 }

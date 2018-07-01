@@ -10,18 +10,18 @@ class PreferenceCustomTimer(durationInSec: Int,
 
     override fun start() {
         super.start()
-        saveState(this.state)
+        saveState(getState())
     }
 
     override fun pause() {
         super.pause()
-        saveState(this.state)
+        saveState(getState())
     }
 
     override fun stop() {
         super.stop()
-        timerPreference.secondsRemaining = this.secondsRemaining
-        saveState(this.state)
+        timerPreference.secondsRemaining = getSecondsRemaining()
+        saveState(getState())
     }
 
     override fun onTick(secondsRemaining: Int) {

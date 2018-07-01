@@ -4,9 +4,10 @@ import android.annotation.TargetApi
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Outline
-import android.opengl.Visibility
 import android.os.Build
 import android.os.Bundle
+import android.support.v7.app.ActionBar
+import android.util.Log
 import android.view.View
 import android.view.ViewOutlineProvider
 import com.arellomobile.mvp.MvpAppCompatActivity
@@ -20,10 +21,12 @@ import com.task.fedor.pomodorotechapp.Timer.MVP.TimerPresenter
 import com.task.fedor.pomodorotechapp.TimerState
 import com.task.fedor.pomodorotechapp.Timer.MVP.TimerView
 import com.task.fedor.pomodorotechapp.Timer.Notification.NotificationService
-import com.task.fedor.pomodorotechapp.Timer.Notification.TimerNotification
 import kotlinx.android.synthetic.main.activity_main.*
-import android.util.DisplayMetrics
-import java.security.AccessController.getContext
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import com.task.fedor.pomodorotechapp.SegmentedProgressBar.ISegmentedProgressBar
+import com.task.fedor.pomodorotechapp.SegmentedProgressBar.SegmentedProgressBar
+import com.task.fedor.pomodorotechapp.SessionType
 
 
 class TimerActivity : MvpAppCompatActivity(), TimerView {
@@ -34,10 +37,11 @@ class TimerActivity : MvpAppCompatActivity(), TimerView {
     lateinit var timerPresenter: TimerPresenter
     var stopAlertDialog: AlertDialog? = null
     var finishAlertDialog: AlertDialog? = null
+    lateinit var segmentedProgressBar : ISegmentedProgressBar
 
     @ProvidePresenter(type = PresenterType.GLOBAL)
     fun provideTimerPresenter(): TimerPresenter {
-        var timerPresenter = TimerPresenter()
+        val timerPresenter = TimerPresenter()
         timerPresenter.initTimer(TimerPreference(applicationContext))
         return timerPresenter
     }
@@ -45,7 +49,8 @@ class TimerActivity : MvpAppCompatActivity(), TimerView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-//        setButtonsView()
+
+        initSegmentedProgressBar()
 
         btn_start.setOnClickListener {
             timerPresenter.startTimer()
@@ -64,20 +69,10 @@ class TimerActivity : MvpAppCompatActivity(), TimerView {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private fun setButtonsView() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            return
-        }
-        val outlineProvider = object : ViewOutlineProvider() {
-            override fun getOutline(view: View, outline: Outline) {
-                val size = view.height
-                outline.setOval(0, 0, size, size)
-            }
-        }
-        btn_start.outlineProvider = outlineProvider
-        btn_pause.outlineProvider = outlineProvider
-        btn_stop.outlineProvider = outlineProvider
+    private fun initSegmentedProgressBar() {
+        segmentedProgressBar = SegmentedProgressBar(applicationContext)
+        segmentedProgressBar.createBars()
+        segmentedProgressBar.addBarsTo(linear_layout_progress)
     }
 
     override fun setTimerMax(max: Int) {
@@ -187,9 +182,9 @@ class TimerActivity : MvpAppCompatActivity(), TimerView {
 
     override fun onPause() {
         super.onPause()
-        if (timerPresenter.timer.state == TimerState.RUNNING) {
+        if (timerPresenter.timer.getState() == TimerState.RUNNING) {
             val intent = Intent(applicationContext, NotificationService::class.java)
-            intent.putExtra("secondsRemaining", timerPresenter.timer.secondsRemaining)
+            intent.putExtra("secondsRemaining", timerPresenter.timer.getSecondsRemaining())
             startService(intent)
         }
     }
@@ -197,5 +192,13 @@ class TimerActivity : MvpAppCompatActivity(), TimerView {
     override fun onResume() {
         super.onResume()
         stopService(Intent(applicationContext, NotificationService::class.java))
+    }
+
+    override fun setSegmentedProgress(progress: Int) {
+        segmentedProgressBar.progress = progress
+    }
+
+    override fun initSegmentedProgressBarSession() {
+        segmentedProgressBar.initSession()
     }
 }

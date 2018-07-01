@@ -3,17 +3,14 @@ package com.task.fedor.pomodorotechapp.Timer.CustomTimer
 import android.os.CountDownTimer
 import com.task.fedor.pomodorotechapp.TimerState
 
-open class BaseCustomTimer(durationInSec: Int,
+open class BaseCustomTimer(private var durationInSec: Int,
                            private val timerListener: TimerListener,
                            startFrom: Int = 0) : CustomTimer {
-    var durationInSec = durationInSec
-        private set
+
     private lateinit var countDownTimer : CountDownTimer
     private val countDownInterval : Long = 500
-    var secondsRemaining: Int = 0
-        private set
-    var state = TimerState.STOPPED
-        private set
+    private var secondsRemaining: Int = 0
+    private var state = TimerState.STOPPED
 
     init {
         if (startFrom > durationInSec)
@@ -95,5 +92,17 @@ open class BaseCustomTimer(durationInSec: Int,
                 throw IllegalStateException("wrong state for timer factory")
             }
         }
+    }
+
+    override fun getSecondsRemaining(): Int {
+        return secondsRemaining
+    }
+
+    override fun getDurationInSec(): Int {
+        return durationInSec
+    }
+
+    override fun getState(): TimerState {
+        return state
     }
 }

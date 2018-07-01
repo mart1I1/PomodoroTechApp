@@ -6,6 +6,7 @@ import com.task.fedor.pomodorotechapp.Preferences.TimerPreference
 import com.task.fedor.pomodorotechapp.SessionType
 import com.task.fedor.pomodorotechapp.Sessions.*
 import com.task.fedor.pomodorotechapp.Timer.CustomTimer.BaseCustomTimer
+import com.task.fedor.pomodorotechapp.Timer.CustomTimer.CustomTimer
 import com.task.fedor.pomodorotechapp.Timer.CustomTimer.PreferenceCustomTimer
 import com.task.fedor.pomodorotechapp.TimerState
 
@@ -13,7 +14,7 @@ import com.task.fedor.pomodorotechapp.TimerState
 class TimerPresenter : MvpPresenter<TimerView>(), ITimerPresenter {
     val TAG = "TimerPresenter"
 
-    lateinit var timer : BaseCustomTimer
+    lateinit var timer : CustomTimer
         private set
 
     override fun initTimer(timerPreference: TimerPreference) {
@@ -21,12 +22,14 @@ class TimerPresenter : MvpPresenter<TimerView>(), ITimerPresenter {
         val timerListener = object : BaseCustomTimer.TimerListener {
             override fun onFinish() {
                 session.onFinish()
+                viewState.setSegmentedProgress(session.getDurationInSeconds())
                 initTimer(timerPreference)
                 viewState.runFinishAlert()
             }
 
             override fun onTick(secondsRemaining: Int) {
                 viewState.setTimerProgress(secondsRemaining)
+                viewState.setSegmentedProgress(secondsRemaining)
             }
         }
         timer = PreferenceCustomTimer(
@@ -34,6 +37,7 @@ class TimerPresenter : MvpPresenter<TimerView>(), ITimerPresenter {
                 timerListener,
                 timerPreference)
 
+        viewState.initSegmentedProgressBarSession()
         updateView()
     }
 
@@ -72,11 +76,17 @@ class TimerPresenter : MvpPresenter<TimerView>(), ITimerPresenter {
     }
 
     override fun updateView() {
-        viewState.updateBtn(timer.state)
-        viewState.setTimerMax(timer.durationInSec)
-        when(timer.state) {
-            TimerState.STOPPED -> viewState.setTimerProgress(timer.durationInSec)
-            TimerState.PAUSED -> viewState.setTimerProgress(timer.secondsRemaining)
+        viewState.updateBtn(timer.getState())
+        viewState.setTimerMax(timer.getDurationInSec())
+        when(timer.getState()) {
+            TimerState.STOPPED -> {
+                viewState.setTimerProgress(timer.getDurationInSec())
+                viewState.setSegmentedProgress(timer.getDurationInSec())
+            }
+            TimerState.PAUSED -> {
+                viewState.setTimerProgress(timer.getSecondsRemaining())
+                viewState.setSegmentedProgress(timer.getSecondsRemaining())
+            }
         }
     }
 
